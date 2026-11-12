@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SR Performance Tracker</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f6f5f1;--card:#fff;--ink:#1c1b19;--mut:#6d6a63;--line:#e5e2d9;--acc:#2f5d50;--soft:#e3eee9;
+--r1:#c0392b;--r2:#d9822b;--r3:#b8941f;--r4:#5f9a45;--r5:#2f7d4f;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121413;--card:#1b1e1c;--ink:#ecebe6;--mut:#9a978f;--line:#2b2f2c;--acc:#7fc1aa;--soft:#22332d;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#121413;--card:#1b1e1c;--ink:#ecebe6;--mut:#9a978f;--line:#2b2f2c;--acc:#7fc1aa;--soft:#22332d;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:16px 14px 40px;max-width:640px;margin:0 auto}
+h1{font-size:22px;margin:4px 0 2px;letter-spacing:-.01em}
+#sum{color:var(--mut);font-size:14px}#sum b{color:var(--ink)}
+#q,#new{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font:inherit;margin-top:12px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:10px 0 4px}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:7px 13px;border-radius:99px;font:inherit;font-size:14px}
+.chip.on{background:var(--acc);border-color:var(--acc);color:var(--bg)}
+.row{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-top:8px;overflow:hidden}
+.head{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;cursor:pointer}
+.av{width:38px;height:38px;border-radius:50%;background:var(--soft);color:var(--acc);display:grid;place-items:center;font-weight:600;font-size:14px;flex:none}
+.nm{flex:1;font-weight:550;min-width:0;overflow-wrap:anywhere}
+.badge{min-width:34px;text-align:center;padding:4px 9px;border-radius:99px;font-size:14px;font-weight:650;color:#fff}
+.badge.none{background:transparent;color:var(--mut);border:1px dashed var(--line);font-weight:400}
+.r1{background:var(--r1)}.r2{background:var(--r2)}.r3{background:var(--r3)}.r4{background:var(--r4)}.r5{background:var(--r5)}
+.body{padding:0 14px 14px;border-top:1px solid var(--line)}
+.lbl{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);margin:12px 0 6px}
+.stars{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.star{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:10px;padding:10px 0;font:inherit;font-weight:600}
+.star small{display:block;font-weight:400;font-size:11px;color:var(--mut)}
+.star.on{color:#fff;border-color:transparent}.star.on small{color:#fff}
+textarea{width:100%;min-height:76px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit;resize:vertical}
+button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.quick{display:flex;gap:6px;padding:0 14px 12px 64px}
+.pill{flex:1;border:1px solid var(--line);background:transparent;color:var(--mut);border-radius:9px;padding:9px 0;font:inherit;font-weight:600}
+.pill.on{color:#fff;border-color:transparent}
+.pill.r1{background:var(--r1)}.pill.r2{background:var(--r2)}.pill.r3{background:var(--r3)}.pill.r4{background:var(--r4)}.pill.r5{background:var(--r5)}
+.rm{margin-top:10px;border:0;background:none;color:var(--r1);font:inherit;font-size:14px;padding:6px 0}
+.empty{color:var(--mut);text-align:center;padding:28px 0}
+.add{display:flex;gap:8px;margin-top:18px}.add #new{margin:0}
+.btn{flex:none;border:0;background:var(--acc);color:var(--bg);border-radius:12px;padding:0 18px;font:inherit;font-weight:600}
+.res{margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px}.res summary{font-weight:600}.res textarea{margin-top:10px;min-height:220px}.res a{display:inline-block;margin-top:10px;color:var(--acc);font-weight:600}
+#st{color:var(--mut);font-size:12px;text-align:center;margin-top:14px}
+</style>
+</head>
+<body>
+<h1>SR Performance</h1>
+<div id="sum"><b>21</b> SRs · <b>0</b> rated · avg <b>–</b> / 5</div>
+<noscript><p style="background:#fde8e4;color:#7a1f14;padding:10px 12px;border-radius:10px;font-size:14px">Grading needs JavaScript. File previews (like Quick Look on iPad) don’t run it. Open this page in Safari or Chrome instead.</p></noscript>
+<input id="q" type="search" placeholder="Search by name" autocomplete="off">
+<div class="chips" id="chips"></div>
+<div id="list"></div>
+<div class="add"><input id="new" placeholder="Add another SR" autocomplete="off"><button class="btn" id="addbtn">Add</button></div>
+<details class="res"><summary>Results (copy or email)</summary><textarea id="out" readonly></textarea><a id="mail" href="#">Email these results</a></details>
+<div id="st"></div>
+<script>
+const K="sr-tracker-v1",L=["","Poor","Fair","Good","Great","Top"];
+const FIX={"p1":"MD. Abdul Muhit","p2":"Kazi Ayesha","p3":"MD. Mahmid Alam Khan","p4":"Muhitul Hasan Mahi","p5":"Nawfel Ahmmed","p6":"Fariha Aforze Rumaly","p7":"Rahbar Raish Khan","p8":"Ruhul Amin Rupom","p9":"Sadnan khan Arko","p10":"Shahara Rahman","p11":"Jannatul Tazree","p12":"Mohammad Tahsin Amin","p13":"Abdul Fahim","p14":"Mehrab Ahmed","p15":"Mehreen Rahabbat Epshita","p16":"Muntaqim Mansur Yukh","p18":"Niyala Tasnim Shawmi","p19":"Sanjida Rahman Audrey","p20":"Sayed Mohammad Sahrior","p21":"Sheakh Rafia Nishat Rawa","p22":"Nadia Zafrin"};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let S={people:Object.keys(FIX).map(id=>({id:id,name:FIX[id]})),d:{},next:23};
+try{const v=JSON.parse(localStorage.getItem(K)||"null");if(v&&Array.isArray(v.people)){S=v;S.d=S.d||{}}}catch(e){}
+function fix(){S.d=S.d||{};S.people=S.people.filter(p=>p.id!=="p17").map(p=>FIX[p.id]?{id:p.id,name:FIX[p.id]}:p);delete S.d.p17;const ids=S.people.map(p=>parseInt(String(p.id).slice(1),10)).filter(Number.isFinite);S.next=Math.max(Number(S.next)||1,...ids.map(x=>x+1),23)}
+fix();
+let mode="all",open=null,confirmId=null,dbDoc=null,timer=null,dirty=false;
+const rate=id=>(S.d[id]&&S.d[id].r)||0;
+const MODES=[["all","All"],["unrated","Unrated"],["top","Top (4–5)"],["low","Needs work (1–2)"]];
+function render(){results();
+  const rated=S.people.filter(p=>rate(p.id));
+  const avg=rated.length?(rated.reduce((a,p)=>a+rate(p.id),0)/rated.length).toFixed(1):"–";
+  $("#sum").innerHTML="<b>"+S.people.length+"</b> SRs · <b>"+rated.length+"</b> rated · avg <b>"+avg+"</b> / 5";
+  $("#chips").innerHTML=MODES.map(m=>'<button class="chip'+(mode===m[0]?" on":"")+'" data-mode="'+m[0]+'">'+m[1]+"</button>").join("");
+  let list=S.people.slice();
+  const q=$("#q").value.trim().toLowerCase();
+  if(q)list=list.filter(p=>p.name.toLowerCase().includes(q));
+  if(mode==="unrated")list=list.filter(p=>!rate(p.id));
+  if(mode==="top")list=list.filter(p=>rate(p.id)>=4).sort((a,b)=>rate(b.id)-rate(a.id));
+  else if(mode==="low")list=list.filter(p=>rate(p.id)&&rate(p.id)<=2).sort((a,b)=>rate(a.id)-rate(b.id));
+  else list.sort((a,b)=>a.name.localeCompare(b.name));
+  $("#list").innerHTML=list.length?list.map(p=>{
+    const r=rate(p.id),ini=p.name.split(/\s+/).slice(0,2).map(w=>w[0]).join("").toUpperCase();
+    let h='<div class="row" data-id="'+esc(p.id)+'"><button class="head" data-act="toggle"><span class="av">'+esc(ini)+'</span><span class="nm">'+esc(p.name)+'</span><span class="badge '+(r?"r"+r:"none")+'">'+(r||"–")+"</span></button>"+'<div class="quick">'+[1,2,3,4,5].map(i=>'<button class="pill'+(r===i?" on r"+i:"")+'" data-act="rate" data-v="'+i+'">'+i+"</button>").join("")+"</div>";
+    if(open===p.id){h+='<div class="body">';h+='<span class="lbl">Notes</span><textarea data-act="note" placeholder="Attendance, responsiveness, events handled…">'+esc((S.d[p.id]&&S.d[p.id].n)||"")+'</textarea>';
+      h+='<button class="rm" data-act="remove">'+(confirmId===p.id?"Tap again to remove":"Remove from list")+"</button></div>";}
+    return h+"</div>";
+  }).join(""):'<div class="empty">Nobody matches.</div>';
+}
+function setStatus(t){$("#st").textContent=t}
+function save(){let ok=true;try{localStorage.setItem(K,JSON.stringify(S))}catch(e){ok=false}
+  if(dbDoc){setStatus("Saving…");dirty=true;clearTimeout(timer);timer=setTimeout(push,600)}
+  else setStatus(ok?"Saved on this device only":"Not saved – this page can’t store data. Copy your results below.");}
+async function push(){if(!dbDoc)return;try{const snap=JSON.stringify(S);await dbDoc.set(JSON.parse(snap));if(JSON.stringify(S)===snap)dirty=false;setStatus("Saved to your Claude account")}catch(e){setStatus("Couldn’t reach your account – saved on this device only")}}
+function results(){const t=S.people.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(p=>{const r=rate(p.id),n=((S.d[p.id]&&S.d[p.id].n)||"").replace(/\s+/g," ").trim();return p.name+" – "+(r?r+"/5":"not rated")+(n?" ("+n+")":"")}).join("\n");const o=$("#out");if(o&&document.activeElement!==o)o.value=t;const m=$("#mail");if(m)m.href="mailto:?subject="+encodeURIComponent("SR performance results")+"&body="+encodeURIComponent(t)}
+$("#list").addEventListener("click",e=>{const t=e.target.closest("[data-act]");if(!t||t.dataset.act==="note")return;const id=t.closest(".row").dataset.id,a=t.dataset.act;
+  if(a==="toggle"){open=open===id?null:id;confirmId=null}
+  else if(a==="rate"){const v=+t.dataset.v,x=S.d[id]=S.d[id]||{};x.r=x.r===v?0:v;save()}
+  else if(a==="remove"){if(confirmId===id){S.people=S.people.filter(p=>p.id!==id);delete S.d[id];open=null;confirmId=null;save()}else confirmId=id}
+  render();});
+$("#list").addEventListener("input",e=>{if(e.target.dataset.act!=="note")return;const id=e.target.closest(".row").dataset.id;(S.d[id]=S.d[id]||{}).n=e.target.value;save()});
+$("#chips").addEventListener("click",e=>{const b=e.target.closest("[data-mode]");if(b){mode=b.dataset.mode;render()}});
+$("#q").addEventListener("input",render);
+function add(){const v=$("#new").value.trim();if(!v)return;S.people.push({id:"p"+S.next++,name:v});$("#new").value="";save();render()}
+$("#addbtn").addEventListener("click",add);$("#new").addEventListener("keydown",e=>{if(e.key==="Enter")add()});
+render();$("#out").addEventListener("focus",e=>e.target.select());
+</script>
+</body>
+</html>
